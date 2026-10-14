@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Footy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --sidebar: #f0f0f2;
+      --panel: #ffffff;
+      --ink: #1d1d1f;
+      --muted: #86868b;
+      --line: #e5e5ea;
+      --accent: #5b9dff;
+      --accent-soft: #dcecff;
+      --accent-text: #2f6fdb;
+      --err: #d70015;
+      --ok: #248a3d;
+      --radius: 10px;
+      --sidebar-w: clamp(168px, 22vw, 240px);
+      --pad-x: clamp(14px, 3vw, 32px);
+      --pad-y: clamp(16px, 2.5vh, 28px);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    .sidebar {
+      background: var(--sidebar);
+      border-right: 1px solid var(--line);
+      padding: 52px 12px 14px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+    }
+    .logo {
+      font-family: Nunito, system-ui, sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+      letter-spacing: -0.03em;
+      color: var(--accent);
+      -webkit-text-stroke: 1.2px #1d1d1f;
+      paint-order: stroke fill;
+      margin: 0 8px 18px;
+      user-select: none;
+    }
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .nav button {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      text-align: left;
+      padding: .55rem .7rem;
+      border-radius: 8px;
+      font: inherit;
+      font-size: clamp(.84rem, 1.1vw, .92rem);
+      font-weight: 500;
+      cursor: pointer;
+      min-width: 0;
+    }
+    .nav button:hover { background: rgba(0,0,0,0.04); }
+    .nav button.active {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    .nav button span.label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .nav svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      opacity: .85;
+    }
+    .sidebar-foot {
+      margin-top: auto;
+      padding: .45rem .55rem;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: .82rem;
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      min-width: 0;
+    }
+    .sidebar-foot #sidebarModel {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #34c759;
+      flex: 0 0 auto;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+      background: var(--panel);
+    }
+    .content {
+      flex: 1 1 auto;
+      overflow: auto;
+      min-height: 0;
+      padding: var(--pad-y) var(--pad-x) 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .content.lock-scroll { overflow: hidden; }
+    .view { display: none; min-width: 0; }
+    .view.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .section-label {
+      margin: 0 0 8px 2px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      flex: 0 0 auto;
+    }
+    .section-label + .section-label { margin-top: 22px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 12px;
+      min-width: 0;
+      width: 100%;
+    }
+    .card.grow {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: .65rem 1rem;
+      padding: 12px 14px;
+      min-height: 44px;
+    }
+    .row + .row { border-top: 1px solid var(--line); }
+    .row .left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .45rem;
+      min-width: 0;
+      flex: 1 1 140px;
+      font-size: clamp(.86rem, 1.1vw, .92rem);
+    }
+    .row .right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: .45rem;
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .row .right.muted {
+      text-align: right;
+      max-width: min(100%, 28rem);
+    }
+    .muted { color: var(--muted); }
+
+    select, button.ctrl, .pill {
+      font: inherit;
+      font-size: .86rem;
+    }
+    select, .pill {
+      border: 1px solid var(--line);
+      background: #f5f5f7;
+      border-radius: 999px;
+      padding: .35rem .75rem;
+      color: var(--ink);
+      max-width: 100%;
+      min-width: 0;
+    }
+    select { width: min(100%, 280px); }
+    button.primary {
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 999px;
+      padding: .45rem 1rem;
+      font: inherit;
+      font-size: .86rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button.primary:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+    button.ghost {
+      border: 1px solid var(--line);
+      background: #f5f5f7;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: .35rem .75rem;
+      font: inherit;
+      font-size: .86rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button.linkish {
+      border: 0;
+      background: transparent;
+      color: var(--accent-text);
+      font: inherit;
+      font-size: .86rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: .25rem .4rem;
+    }
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    /* —— Transcribe: compact setup + growing result —— */
+    .setup {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 0 0 auto;
+      min-width: 0;
+    }
+    .drop {
+      border: 1.5px dashed #c7c7cc;
+      border-radius: 12px;
+      padding: clamp(1.6rem, 5vh, 2.8rem) 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: #fafafa;
+      transition: border-color .15s, background .15s, padding .15s;
+    }
+    .drop:hover, .drop.dragover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .drop strong {
+      display: block;
+      font-size: clamp(.9rem, 1.2vw, .98rem);
+      font-weight: 600;
+      margin-bottom: .25rem;
+    }
+    .drop span { color: var(--muted); font-size: .86rem; }
+
+    .file-bar {
+      display: none;
+      align-items: center;
+      gap: .75rem;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      min-width: 0;
+    }
+    .file-bar .meta {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: .9rem;
+      font-weight: 500;
+    }
+    .file-bar .actions {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      flex: 0 0 auto;
+    }
+
+    .opts {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .45rem .55rem;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+    .opts .field {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      min-width: 0;
+    }
+    .opts .field > span {
+      font-size: .78rem;
+      color: var(--muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .opts select {
+      width: auto;
+      max-width: min(240px, 42vw);
+    }
+    .opts .tog {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .84rem;
+      padding: .28rem .55rem;
+      border-radius: 999px;
+      background: #f5f5f7;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .opts .spacer { flex: 1 1 8px; min-width: 0; }
+
+    #view-transcribe.has-file .drop { display: none; }
+    #view-transcribe.has-file .file-bar { display: flex; }
+    #view-transcribe.has-result .drop {
+      display: none;
+      padding: 0;
+    }
+    #view-transcribe.has-result .opts {
+      padding: 8px 10px;
+    }
+    #view-transcribe.empty-state {
+      justify-content: center;
+    }
+    #view-transcribe.empty-state .setup {
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    #view-transcribe.empty-state .opts { justify-content: center; }
+
+    .status {
+      padding: 12px 14px;
+      display: none;
+      min-height: 0;
+      height: 100%;
+    }
+    .status.show {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+    .bar {
+      height: 5px;
+      background: #ececf0;
+      border-radius: 999px;
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width .25s ease;
+    }
+    .status-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: .35rem .75rem;
+      margin-top: .55rem;
+      flex: 0 0 auto;
+    }
+    .msg {
+      margin: 0;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+    .msg.error { color: var(--err); }
+    .msg.done { color: var(--ok); }
+    .result-actions {
+      display: none;
+      gap: .4rem;
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+    #view-transcribe.has-result .result-actions { display: flex; }
+    pre, .transcript {
+      margin: .65rem 0 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f5f5f7;
+      border-radius: 10px;
+      padding: .85rem 1rem;
+      overflow: auto;
+      font-size: clamp(.82rem, 1.05vw, .88rem);
+      line-height: 1.5;
+      font-family: Inter, -apple-system, sans-serif;
+      min-height: 0;
+      flex: 1 1 auto;
+      max-height: none;
+    }
+    #text.transcript {
+      flex: 1 1 auto;
+      min-height: 120px;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: auto;
+      max-height: min(40vh, 360px);
+    }
+    .item {
+      width: 100%;
+      border: 0;
+      border-top: 1px solid var(--line);
+      background: transparent;
+      text-align: left;
+      padding: 12px 14px;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+    }
+    .item:first-child { border-top: 0; }
+    .item:hover { background: #fafafa; }
+    .item.active { background: var(--accent-soft); }
+    .item .title {
+      font-size: .9rem;
+      font-weight: 600;
+      word-break: break-all;
+    }
+    .item .meta {
+      margin-top: .15rem;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+    .item .preview {
+      margin-top: .3rem;
+      color: #3a3a3c;
+      font-size: .84rem;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .empty {
+      padding: 16px 14px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .viewer {
+      margin-top: 14px;
+      display: none;
+      min-height: 0;
+    }
+    .viewer.show {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 120px;
+    }
+    .viewer .card {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0;
+    }
+    .viewer .toolbar {
+      display: flex;
+      gap: .4rem;
+      align-items: center;
+      margin-bottom: .5rem;
+      flex: 0 0 auto;
+      flex-wrap: wrap;
+    }
+    .viewer .toolbar .name {
+      flex: 1;
+      min-width: 0;
+      color: var(--muted);
+      font-size: .82rem;
+      word-break: break-all;
+    }
+    .viewer pre {
+      flex: 1 1 auto;
+      max-height: none;
+      min-height: 140px;
+    }
+
+    .warn {
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #fff4e5;
+      color: #9a5b00;
+      border: 1px solid #f0d2a8;
+      font-size: .86rem;
+      flex: 0 0 auto;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 10px var(--pad-x);
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: .55rem;
+      align-items: center;
+      color: var(--muted);
+      font-size: .78rem;
+      flex: 0 0 auto;
+    }
+    .footer .accent { color: var(--accent-text); font-weight: 500; }
+
+    @media (max-width: 720px) {
+      :root { --sidebar-w: 72px; }
+      .logo {
+        font-size: 1.05rem;
+        margin: 0 4px 14px;
+        text-align: center;
+      }
+      .nav button {
+        justify-content: center;
+        padding: .65rem .4rem;
+      }
+      .nav button span.label,
+      .sidebar-foot #sidebarModel { display: none; }
+      .sidebar-foot { justify-content: center; }
+      .row .right.muted { max-width: 100%; text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">footy</div>
+      <nav class="nav">
+        <button type="button" class="active" data-view="transcribe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17v2h16v-2"/><path d="M12 4v11"/><path d="M8 10l4 5 4-5"/></svg>
+          <span class="label">Transcriberen</span>
+        </button>
+        <button type="button" data-view="archive">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>
+          <span class="label">Archief</span>
+        </button>
+        <button type="button" data-view="folders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+          <span class="label">Mappen</span>
+        </button>
+        <button type="button" data-view="about">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 11v5"/><circle cx="12" cy="8" r=".8" fill="currentColor"/></svg>
+          <span class="label">Over Footy</span>
+        </button>
+        <button type="button" id="openEg2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          <span class="label">EG2 Transcribe</span>
+        </button>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="dot"></span>
+        <span id="sidebarModel">Lokaal</span>
+      </div>
+    </aside>
+
+    <section class="main">
+      <div class="content">
+        {% if not model_ok %}
+          <div class="warn">Model niet gevonden: {{ model_path }}</div>
+        {% endif %}
+        {% if not tools_ok %}
+          <div class="warn">ffmpeg of whisper-cli ontbreekt.</div>
+        {% endif %}
+
+        <div class="view active empty-state" id="view-transcribe">
+          <div class="setup" id="setupPanel">
+            <div class="drop" id="drop">
+              <strong>Sleep een audio- of videobestand hierheen</strong>
+              <span>of klik om te kiezen</span>
+              <input id="file" type="file" accept="audio/*,video/*" hidden />
+            </div>
+
+            <div class="file-bar" id="fileBar">
+              <div class="meta" id="fileName"></div>
+              <div class="actions">
+                <button type="button" class="linkish" id="changeFile">Wijzig</button>
+                <button class="primary" id="start" disabled>Transcribeer</button>
+              </div>
+            </div>
+
+            <div class="opts">
+              <label class="field">
+                <span>Model</span>
+                <select id="model">
+                  {% for m in models %}
+                    <option value="{{ m.id }}" {% if not m.available %}disabled{% endif %} {% if loop.first and m.available %}selected{% endif %}>
+                      {{ m.label }}{% if not m.available %} (niet gevonden){% endif %}
+                    </option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="field">
+                <span>Taal</span>
+                <select id="language">
+                  <option value="auto" selected>Auto</option>
+                  <option value="nl">Nederlands</option>
+                  <option value="en">Engels</option>
+                  <option value="de">Duits</option>
+                  <option value="fr">Frans</option>
+                </select>
+              </label>
+              <label class="tog" title="Timestamps in tekst">
+                <input type="checkbox" id="timestamps" checked /> Timestamps
+              </label>
+              <label class="tog" title="{% if ollama_model %}Qwen 3.8 via Ollama{% else %}Ollama uit{% endif %}">
+                <input type="checkbox" id="postProcess" {% if not ollama_model %}disabled{% endif %} /> Post
+              </label>
+              <label class="tog" title="Speaker labels">
+                <input type="checkbox" id="speakers" /> Speakers
+              </label>
+              <span class="muted" id="speakersHint" style="font-size:.78rem"></span>
+              <span class="spacer"></span>
+            </div>
+          </div>
+
+          <div class="card grow" id="statusCard" hidden>
+            <div class="status show" id="status">
+              <div class="bar"><i id="bar"></i></div>
+              <div class="status-head">
+                <p class="msg" id="msg"></p>
+                <p class="msg" id="timing"></p>
+                <div class="result-actions">
+                  <button type="button" class="ghost" id="copyResult">Kopieer</button>
+                  <button type="button" class="ghost" id="newFile">Nieuw</button>
+                </div>
+              </div>
+              <pre class="transcript" id="text" hidden></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" id="view-archive">
+          <p class="section-label">Archief</p>
+          <div class="card">
+            <div class="row">
+              <div class="left"><span class="muted" id="archiveCount">Laden…</span></div>
+              <div class="right">
+                <button class="ghost" id="refreshArchive" type="button">Vernieuw</button>
+                <button class="ghost" id="openOutTop" type="button">Map</button>
+              </div>
+            </div>
+            <div class="list" id="archiveList"></div>
+          </div>
+          <div class="viewer" id="viewer">
+            <div class="card" style="padding:12px 14px">
+              <div class="toolbar">
+                <div class="name" id="viewerName"></div>
+                <button class="ghost" id="openTxt" type="button">Open</button>
+                <button class="ghost" id="copyTxt" type="button">Kopieer</button>
+              </div>
+              <pre id="viewerText"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" id="view-folders">
+          <p class="section-label">Snelkoppelingen</p>
+          <div class="card">
+            <div class="row">
+              <div class="left">Dictafoon</div>
+              <div class="right"><button class="linkish" id="openVoice" type="button">Open</button></div>
+            </div>
+            <div class="row">
+              <div class="left">Handy-opnames</div>
+              <div class="right"><button class="linkish" id="openHandy" type="button">Open</button></div>
+            </div>
+            <div class="row">
+              <div class="left">Transcripts</div>
+              <div class="right"><button class="linkish" id="openOut" type="button">Open</button></div>
+            </div>
+            <div class="row">
+              <div class="left">EG2 Transcribe (Neural Engine)</div>
+              <div class="right"><button class="linkish" id="openEg2Folder" type="button">Open app</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" id="view-about">
+          <p class="section-label">Over Footy</p>
+          <div class="card">
+            <div class="row">
+              <div class="left">Handy voor live · Footy voor bestanden</div>
+            </div>
+            <div class="row">
+              <div class="left">Speakers</div>
+              <div class="right muted" style="font-size:.8rem">FluidAudio = echte diarization. Whisper = alleen stereo L/R.</div>
+            </div>
+            <div class="row">
+              <div class="left">Models</div>
+              <div class="right muted" style="font-size:.8rem; word-break:break-all">FluidAudio · Whisper Turbo · Parakeet ggml</div>
+            </div>
+            <div class="row">
+              <div class="left">Output</div>
+              <div class="right muted" style="font-size:.8rem; word-break:break-all">{{ output_dir }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span class="accent">Lokaal</span>
+        <span>·</span>
+        <span>v1.0</span>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+    const drop = document.getElementById('drop');
+    const fileInput = document.getElementById('file');
+    const fileName = document.getElementById('fileName');
+    const startBtn = document.getElementById('start');
+    const statusEl = document.getElementById('status');
+    const statusCard = document.getElementById('statusCard');
+    const bar = document.getElementById('bar');
+    const msg = document.getElementById('msg');
+    const textEl = document.getElementById('text');
+    const language = document.getElementById('language');
+    const modelSelect = document.getElementById('model');
+    const timestampsEl = document.getElementById('timestamps');
+    const postProcessEl = document.getElementById('postProcess');
+    const speakersEl = document.getElementById('speakers');
+    const timingEl = document.getElementById('timing');
+    const sidebarModel = document.getElementById('sidebarModel');
+    const archiveList = document.getElementById('archiveList');
+    const archiveCount = document.getElementById('archiveCount');
+    const viewer = document.getElementById('viewer');
+    const viewerName = document.getElementById('viewerName');
+    const viewerText = document.getElementById('viewerText');
+    const viewTranscribe = document.getElementById('view-transcribe');
+    const contentEl = document.querySelector('.content');
+
+    let selectedFile = null;
+    let pollTimer = null;
+    let activeName = null;
+    let hasResult = false;
+
+    function syncLayout() {
+      viewTranscribe.classList.toggle('has-file', !!selectedFile);
+      viewTranscribe.classList.toggle('has-result', hasResult);
+      viewTranscribe.classList.toggle('empty-state', !selectedFile && !hasResult);
+      const onTranscribe = viewTranscribe.classList.contains('active');
+      contentEl?.classList.toggle('lock-scroll', onTranscribe && (hasResult || !!selectedFile));
+    }
+
+    function syncSidebarModel() {
+      const opt = modelSelect?.selectedOptions?.[0];
+      if (sidebarModel && opt) sidebarModel.textContent = opt.textContent.trim().split('(')[0].trim();
+    }
+    modelSelect?.addEventListener('change', syncSidebarModel);
+    syncSidebarModel();
+
+    const speakersHint = document.getElementById('speakersHint');
+    function syncSpeakerHint() {
+      const m = modelSelect?.value;
+      if (!speakersHint) return;
+      if (m === 'fluidaudio') speakersHint.textContent = 'FluidAudio';
+      else if (m === 'whisper-turbo') speakersHint.textContent = 'stereo L/R';
+      else speakersHint.textContent = 'n.v.t.';
+    }
+    modelSelect?.addEventListener('change', syncSpeakerHint);
+    syncSpeakerHint();
+
+    speakersEl?.addEventListener('change', () => {
+      if (speakersEl.checked && modelSelect.value === 'parakeet') {
+        alert('Speakers werkt met FluidAudio Parakeet (ANE) of Whisper Turbo (stereo). Schakel model om.');
+        speakersEl.checked = false;
+      }
+    });
+
+    document.querySelectorAll('.nav button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!btn.dataset.view) return;
+        document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`view-${btn.dataset.view}`).classList.add('active');
+        if (btn.dataset.view === 'archive') loadArchive();
+        syncLayout();
+      });
+    });
+
+    function pickFile() { fileInput.click(); }
+    drop.addEventListener('click', pickFile);
+    document.getElementById('changeFile')?.addEventListener('click', pickFile);
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) setFile(fileInput.files[0]);
+    });
+    ['dragenter', 'dragover'].forEach(ev => {
+      drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(ev => {
+      drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('dragover'); });
+    });
+    drop.addEventListener('drop', e => {
+      const f = e.dataTransfer.files[0];
+      if (f) setFile(f);
+    });
+    // Whole window drop while on transcribe
+    ;['dragenter', 'dragover'].forEach(ev => {
+      document.body.addEventListener(ev, e => {
+        if (!viewTranscribe.classList.contains('active')) return;
+        if (![...e.dataTransfer.types].includes('Files')) return;
+        e.preventDefault();
+      });
+    });
+    document.body.addEventListener('drop', e => {
+      if (!viewTranscribe.classList.contains('active')) return;
+      const f = e.dataTransfer?.files?.[0];
+      if (!f) return;
+      e.preventDefault();
+      setFile(f);
+    });
+
+    function setFile(f) {
+      selectedFile = f;
+      hasResult = false;
+      fileName.textContent = `${f.name} · ${(f.size / (1024*1024)).toFixed(1)} MB`;
+      startBtn.disabled = false;
+      statusCard.hidden = true;
+      textEl.hidden = true;
+      textEl.textContent = '';
+      syncLayout();
+    }
+
+    function resetToNew() {
+      selectedFile = null;
+      hasResult = false;
+      fileInput.value = '';
+      fileName.textContent = '';
+      startBtn.disabled = true;
+      statusCard.hidden = true;
+      textEl.hidden = true;
+      textEl.textContent = '';
+      msg.textContent = '';
+      timingEl.textContent = '';
+      bar.style.width = '0%';
+      syncLayout();
+    }
+
+    document.getElementById('newFile')?.addEventListener('click', resetToNew);
+    document.getElementById('copyResult')?.addEventListener('click', async () => {
+      const btn = document.getElementById('copyResult');
+      try {
+        await navigator.clipboard.writeText(textEl.textContent || '');
+        btn.textContent = 'Gekopieerd';
+        setTimeout(() => { btn.textContent = 'Kopieer'; }, 1200);
+      } catch (_) {}
+    });
+
+    syncLayout();
+
+    function openFolder(which) {
+      fetch(`/api/open-folder?which=${encodeURIComponent(which)}`);
+    }
+    document.getElementById('openOut').addEventListener('click', () => openFolder('transcripts'));
+    document.getElementById('openOutTop').addEventListener('click', () => openFolder('transcripts'));
+    document.getElementById('openVoice').addEventListener('click', () => openFolder('voicememos'));
+    document.getElementById('openHandy').addEventListener('click', () => openFolder('handy'));
+    document.getElementById('openEg2').addEventListener('click', () => openFolder('eg2'));
+    document.getElementById('openEg2Folder').addEventListener('click', () => openFolder('eg2'));
+    document.getElementById('refreshArchive').addEventListener('click', loadArchive);
+
+    document.getElementById('openTxt').addEventListener('click', () => {
+      if (activeName) window.open(`/transcripts/${encodeURIComponent(activeName)}`, '_blank');
+    });
+    document.getElementById('copyTxt').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(viewerText.textContent || '');
+        document.getElementById('copyTxt').textContent = 'Gekopieerd';
+        setTimeout(() => { document.getElementById('copyTxt').textContent = 'Kopieer'; }, 1200);
+      } catch (_) {}
+    });
+
+    startBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      startBtn.disabled = true;
+      hasResult = true;
+      statusCard.hidden = false;
+      textEl.hidden = true;
+      textEl.textContent = '';
+      setProgress(2, 'Bezig…', '');
+      syncLayout();
+
+      const fd = new FormData();
+      fd.append('file', selectedFile);
+      fd.append('language', language.value);
+      fd.append('model', modelSelect.value);
+      fd.append('timestamps', timestampsEl.checked ? '1' : '0');
+      fd.append('post_process', postProcessEl.checked ? '1' : '0');
+      fd.append('speakers', speakersEl.checked ? '1' : '0');
+      timingEl.textContent = '';
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload mislukt');
+        poll(data.job_id);
+      } catch (err) {
+        setProgress(100, err.message, 'error');
+        startBtn.disabled = false;
+      }
+    });
+
+    function setProgress(pct, message, kind) {
+      bar.style.width = `${pct}%`;
+      msg.textContent = message;
+      msg.className = 'msg' + (kind ? ` ${kind}` : '');
+    }
+
+    function setTiming(job) {
+      if (!timingEl) return;
+      const parts = [];
+      if (job.elapsed_label) parts.push(`Duur: ${job.elapsed_label}`);
+      if (job.audio_duration_label) parts.push(`Audio: ${job.audio_duration_label}`);
+      if (job.realtime_factor) parts.push(`${job.realtime_factor}× realtime`);
+      timingEl.textContent = parts.join(' · ');
+    }
+
+    function poll(jobId) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/job/${jobId}`);
+          const job = await res.json();
+          if (!res.ok) throw new Error(job.error || 'Job fout');
+          setProgress(job.progress || 0, job.message || job.status, '');
+          setTiming(job);
+          if (job.status === 'done') {
+            clearInterval(pollTimer);
+            setProgress(100, job.message || 'Klaar', 'done');
+            setTiming(job);
+            if (job.text) {
+              textEl.hidden = false;
+              textEl.textContent = job.text;
+            }
+            startBtn.disabled = false;
+            loadArchive();
+          } else if (job.status === 'error') {
+            clearInterval(pollTimer);
+            setProgress(100, job.message || 'Fout', 'error');
+            setTiming(job);
+            startBtn.disabled = false;
+          }
+        } catch (err) {
+          clearInterval(pollTimer);
+          setProgress(100, err.message, 'error');
+          startBtn.disabled = false;
+        }
+      }, 1200);
+    }
+
+    async function loadArchive() {
+      archiveList.innerHTML = '<div class="empty">Laden…</div>';
+      try {
+        const res = await fetch('/api/transcripts');
+        const data = await res.json();
+        const items = data.items || [];
+        archiveCount.textContent = items.length ? `${items.length} transcript${items.length === 1 ? '' : 's'}` : 'Nog leeg';
+        if (!items.length) {
+          archiveList.innerHTML = '<div class="empty">Nog geen transcripts.</div>';
+          return;
+        }
+        archiveList.innerHTML = '';
+        items.forEach(item => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'item' + (item.txt === activeName ? ' active' : '');
+          const metaBits = [item.mtime_label];
+          if (item.model) metaBits.push(item.model);
+          if (item.elapsed_label) metaBits.push(`duur ${item.elapsed_label}`);
+          if (item.audio_duration_label) metaBits.push(`audio ${item.audio_duration_label}`);
+          btn.innerHTML = `
+            <div class="title">${escapeHtml(item.txt)}</div>
+            <div class="meta">${escapeHtml(metaBits.join(' · '))}</div>
+            <div class="preview">${escapeHtml(item.preview || '')}</div>
+          `;
+          btn.addEventListener('click', () => openTranscript(item.txt));
+          archiveList.appendChild(btn);
+        });
+      } catch (err) {
+        archiveList.innerHTML = `<div class="empty">${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    async function openTranscript(name) {
+      activeName = name;
+      [...archiveList.querySelectorAll('.item')].forEach(el => {
+        el.classList.toggle('active', el.querySelector('.title')?.textContent === name);
+      });
+      const res = await fetch(`/api/transcript/${encodeURIComponent(name)}`);
+      const data = await res.json();
+      viewer.classList.add('show');
+      viewerName.textContent = data.name || name;
+      viewerText.textContent = data.text || data.error || '';
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+    }
+
+    loadArchive();
+  </script>
+</body>
+</html>
